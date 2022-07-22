@@ -18,6 +18,7 @@ package org.ktorm.support.postgresql
 
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
+import org.ktorm.schema.EnumSqlType
 import org.ktorm.schema.SqlType
 import java.lang.reflect.InvocationTargetException
 import java.sql.PreparedStatement
@@ -198,3 +199,36 @@ public object EarthSqlType : SqlType<Earth>(Types.OTHER, "earth") {
         }
     }
 }
+
+public inline fun <reified C : Enum<C>> enumSqlType(dataTypeName: String): SqlType<C> =
+    EnumSqlType(C::class.java, dataTypeName)
+
+public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String, dataTypeName: String): Column<C> =
+    registerColumn(name, enumSqlType(dataTypeName))
+
+public fun <C : Enum<C>> BaseTable<*>.enum(name: String, sqlType: SqlType<C>): Column<C> =
+    registerColumn(name, sqlType)
+
+public class EnumArraySqlType<T : Enum<T>>(private val arrayContentType: EnumSqlType<T>) :
+    SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.typeName}[]") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) {
+        ps.setArray(index, ps.connection.createArrayOf(arrayContentType.typeName, parameter.map { it?.name }.toTypedArray()))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): Array<T?>? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any?>?
+            val resultArray = arrayOfNulls<Any?>(objectArray?.size ?: 0)
+            objectArray?.forEachIndexed { idx, value ->
+                resultArray[idx] = (value as String?)?.let { java.lang.Enum.valueOf(arrayContentType.enumClass, it) }
+            }
+            return resultArray as Array<T?>?
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+public fun <T : Enum<T>> EnumSqlType<T>.toEnumArraySqlType(): EnumArraySqlType<T> = EnumArraySqlType(this)

@@ -502,8 +502,11 @@ public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String): Column<
  * [SqlType] implementation that saves enums as strings.
  *
  * @property enumClass the enum class.
+ * @property dataTypeName the name of the data type if the enum is defined as data type.
  */
-public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<C>(Types.OTHER, "enum") {
+public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>, public val dataTypeName: String? = null) :
+    SqlType<C>(Types.OTHER, dataTypeName ?: "enum") {
+
     private val pgStatementClass =
         try { Class.forName("org.postgresql.PGStatement") } catch (_: ClassNotFoundException) { null }
 
