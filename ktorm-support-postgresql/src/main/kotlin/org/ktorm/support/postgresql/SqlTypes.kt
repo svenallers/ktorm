@@ -211,18 +211,18 @@ public fun <C : Enum<C>> BaseTable<*>.enum(name: String, sqlType: SqlType<C>): C
 
 public class EnumArraySqlType<T : Enum<T>>(private val arrayContentType: EnumSqlType<T>) :
     SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.typeName}[]") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) { // TODO can I take use of arrayContentType as in doGetResult
         ps.setArray(index, ps.connection.createArrayOf(arrayContentType.typeName, parameter.map { it?.name }.toTypedArray()))
-    }
+    } //TODO when this is possible then I don't have to restrict it by EnumSqlType
 
     @Suppress("UNCHECKED_CAST")
     override fun doGetResult(rs: ResultSet, index: Int): Array<T?>? {
         val sqlArray = rs.getArray(index) ?: return null
         try {
-            val objectArray = sqlArray.array as Array<Any?>?
-            val resultArray = arrayOfNulls<Any?>(objectArray?.size ?: 0)
-            objectArray?.forEachIndexed { idx, value ->
-                resultArray[idx] = (value as String?)?.let { java.lang.Enum.valueOf(arrayContentType.enumClass, it) }
+            val sqlArrayResultSet = sqlArray.resultSet
+            val resultArray = arrayOfNulls<Any?>(sqlArrayResultSet.fetchSize)
+            for (idx in resultArray.indices) {
+                resultArray[idx] = arrayContentType.getResult(sqlArrayResultSet, idx)
             }
             return resultArray as Array<T?>?
         } finally {
