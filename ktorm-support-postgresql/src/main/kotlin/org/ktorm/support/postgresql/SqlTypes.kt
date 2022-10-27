@@ -16,14 +16,17 @@
 
 package org.ktorm.support.postgresql
 
-import org.ktorm.schema.BaseTable
-import org.ktorm.schema.Column
-import org.ktorm.schema.EnumSqlType
-import org.ktorm.schema.SqlType
+import org.ktorm.schema.*
+import org.postgresql.jdbc.PgSQLXML
+import org.postgresql.util.PGobject
+import java.io.InputStream
+import java.io.Reader
+import java.math.BigDecimal
+import java.net.URL
 import java.lang.reflect.InvocationTargetException
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.Types
+import java.sql.*
+import java.sql.Date
+import java.util.*
 
 /**
  * Represent values of PostgreSQL `text[]` SQL type.
@@ -40,23 +43,7 @@ public fun BaseTable<*>.textArray(name: String): Column<TextArray> {
 /**
  * [SqlType] implementation represents PostgreSQL `text[]` type.
  */
-public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
-
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: TextArray) {
-        ps.setObject(index, parameter)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun doGetResult(rs: ResultSet, index: Int): TextArray? {
-        val sqlArray = rs.getArray(index) ?: return null
-        try {
-            val objectArray = sqlArray.array as Array<Any?>?
-            return objectArray?.map { it as String? }?.toTypedArray()
-        } finally {
-            sqlArray.free()
-        }
-    }
-}
+public object TextArraySqlType : ArraySqlType<String>(TextSqlType)
 
 /**
  * Represent values of PostgreSQL `hstore` SQL type.
@@ -206,14 +193,17 @@ public inline fun <reified C : Enum<C>> enumSqlType(dataTypeName: String): SqlTy
 public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String, dataTypeName: String): Column<C> =
     registerColumn(name, enumSqlType(dataTypeName))
 
-public fun <C : Enum<C>> BaseTable<*>.enum(name: String, sqlType: SqlType<C>): Column<C> =
-    registerColumn(name, sqlType)
-
-public class EnumArraySqlType<T : Enum<T>>(private val arrayContentType: EnumSqlType<T>) :
+public open class ArraySqlType<T: Any>(private val arrayContentType: SqlType<T>) :
     SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.typeName}[]") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) { // TODO can I take use of arrayContentType as in doGetResult
-        ps.setArray(index, ps.connection.createArrayOf(arrayContentType.typeName, parameter.map { it?.name }.toTypedArray()))
-    } //TODO when this is possible then I don't have to restrict it by EnumSqlType
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) {
+        ps.connection.prepareCall("$1").use { parameterContainer ->
+            ps.setArray(index, ps.connection.createArrayOf(arrayContentType.typeName, parameter.map {
+                arrayContentType.setParameter(parameterContainer, 1, it)
+                parameterContainer.getObject(1) //TODO  otherwise via getRef?
+            }.toTypedArray()))
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
     override fun doGetResult(rs: ResultSet, index: Int): Array<T?>? {
@@ -231,4 +221,4 @@ public class EnumArraySqlType<T : Enum<T>>(private val arrayContentType: EnumSql
     }
 }
 
-public fun <T : Enum<T>> EnumSqlType<T>.toEnumArraySqlType(): EnumArraySqlType<T> = EnumArraySqlType(this)
+public fun <T : Any> SqlType<T>.toArraySqlType(): ArraySqlType<T> = ArraySqlType(this)
