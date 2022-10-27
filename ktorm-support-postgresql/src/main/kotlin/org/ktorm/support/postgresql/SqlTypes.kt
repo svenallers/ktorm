@@ -197,7 +197,7 @@ public open class ArraySqlType<T: Any>(private val arrayContentType: SqlType<T>)
     SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.typeName}[]") {
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) {
-        ps.connection.prepareCall("$1").use { parameterContainer ->
+        ps.connection.prepareCall("?").use { parameterContainer ->
             ps.setArray(index, ps.connection.createArrayOf(arrayContentType.typeName, parameter.map {
                 arrayContentType.setParameter(parameterContainer, 1, it)
                 parameterContainer.getObject(1) //TODO  otherwise via getRef?
