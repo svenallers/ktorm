@@ -7,7 +7,7 @@ import org.ktorm.schema.*
 
 public fun <T : Enum<T>> arrayPosition(value: Array<T?>, column: ColumnDeclaring<T>): FunctionExpression<Int> {
     val columnSqlType = column.sqlType
-    return if (columnSqlType is EnumSqlType<T> && columnSqlType.dataTypeName !=null) {
+    return if (columnSqlType is EnumSqlType<T>) {
         arrayPosition(value, column, columnSqlType.toEnumArraySqlType())
     } else {
         arrayPosition(value.map { it?.name }.toTypedArray(), column.cast(TextSqlType))
@@ -16,7 +16,7 @@ public fun <T : Enum<T>> arrayPosition(value: Array<T?>, column: ColumnDeclaring
 
 public inline fun <reified T : Enum<T>> arrayPosition(value: Collection<T?>, column: ColumnDeclaring<T>): FunctionExpression<Int> {
     val columnSqlType = column.sqlType
-    return if (columnSqlType is EnumSqlType<T> && columnSqlType.dataTypeName !=null) {
+    return if (columnSqlType is EnumSqlType<T>) {
         arrayPosition(value.toTypedArray(), column, columnSqlType.toEnumArraySqlType())
     } else {
         arrayPosition(value.map { it?.name }.toTypedArray(), column.cast(TextSqlType))

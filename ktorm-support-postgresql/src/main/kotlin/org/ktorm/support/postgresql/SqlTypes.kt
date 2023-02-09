@@ -210,7 +210,8 @@ public fun <C : Enum<C>> BaseTable<*>.enum(name: String, sqlType: SqlType<C>): C
     registerColumn(name, sqlType)
 
 public class EnumArraySqlType<T : Enum<T>>(private val arrayContentType: EnumSqlType<T>) :
-    SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.typeName}[]") {
+    // By default, EnumsSqlType uses 'enum' as datatype which is not supported by Postgres that is why have to treat the values as 'text' when no explicit datatype is defined
+    SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.dataTypeName?: "text"}[]") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) { // TODO can I take use of arrayContentType as in doGetResult
         ps.setArray(index, ps.connection.createArrayOf(arrayContentType.typeName, parameter.map { it?.name }.toTypedArray()))
     } //TODO when this is possible then I don't have to restrict it by EnumSqlType
