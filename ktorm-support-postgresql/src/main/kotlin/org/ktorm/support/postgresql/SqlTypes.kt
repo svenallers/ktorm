@@ -222,3 +222,11 @@ public open class ArraySqlType<T: Any>(private val arrayContentType: SqlType<T>)
 }
 
 public fun <T : Any> SqlType<T>.toArraySqlType(): ArraySqlType<T> = ArraySqlType(this)
+
+public fun <T : Enum<T>> EnumSqlType<T>.toArraySqlType(): ArraySqlType<T> =
+    if(this.dataTypeName == null) {
+        // By default, EnumsSqlType uses 'enum' as datatype which is not supported by Postgres that is why have to treat the values as 'text' when no explicit datatype is defined
+        ArraySqlType(EnumSqlType(this.enumClass, "text"))
+    } else {
+        ArraySqlType(this)
+    }
