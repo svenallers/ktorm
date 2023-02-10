@@ -5,7 +5,7 @@ import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.FunctionExpression
 import org.ktorm.schema.*
 
-public fun <T : Enum<T>> arrayPosition(value: Array<T?>, column: ColumnDeclaring<T>): FunctionExpression<Int> {
+public inline fun <reified T : Enum<T>> arrayPosition(value: Array<T?>, column: ColumnDeclaring<T>): FunctionExpression<Int> {
     val columnSqlType = column.sqlType
     return if (columnSqlType is EnumSqlType<T>) {
         arrayPosition(value, column, columnSqlType.toEnumArraySqlType())

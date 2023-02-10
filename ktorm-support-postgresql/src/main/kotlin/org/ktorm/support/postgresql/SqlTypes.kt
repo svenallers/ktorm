@@ -212,20 +212,20 @@ public fun <C : Enum<C>> BaseTable<*>.enum(name: String, sqlType: SqlType<C>): C
 public class EnumArraySqlType<T : Enum<T>>(private val arrayContentType: EnumSqlType<T>) :
     // By default, EnumsSqlType uses 'enum' as datatype which is not supported by Postgres that is why have to treat the values as 'text' when no explicit datatype is defined
     SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.dataTypeName?: "text"}[]") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) { // TODO can I take use of arrayContentType as in doGetResult
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) {
         ps.setArray(index, ps.connection.createArrayOf(arrayContentType.typeName, parameter.map { it?.name }.toTypedArray()))
-    } //TODO when this is possible then I don't have to restrict it by EnumSqlType
+    }
 
     @Suppress("UNCHECKED_CAST")
     override fun doGetResult(rs: ResultSet, index: Int): Array<T?>? {
         val sqlArray = rs.getArray(index) ?: return null
         try {
             val sqlArrayResultSet = sqlArray.resultSet
-            val resultArray = arrayOfNulls<Any?>(sqlArrayResultSet.fetchSize)
+            val resultArray = arrayOfNulls<Any?>(sqlArrayResultSet.fetchSize) as Array<T?>
             for (idx in resultArray.indices) {
                 resultArray[idx] = arrayContentType.getResult(sqlArrayResultSet, idx)
             }
-            return resultArray as Array<T?>?
+            return resultArray
         } finally {
             sqlArray.free()
         }
