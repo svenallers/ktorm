@@ -200,20 +200,37 @@ public object EarthSqlType : SqlType<Earth>(Types.OTHER, "earth") {
     }
 }
 
+/**
+ * TODO.
+ */
 public inline fun <reified C : Enum<C>> enumSqlType(dataTypeName: String): SqlType<C> =
     EnumSqlType(C::class.java, dataTypeName)
 
+/**
+ * TODO.
+ */
 public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String, dataTypeName: String): Column<C> =
     registerColumn(name, enumSqlType(dataTypeName))
 
+/**
+ * TODO.
+ */
 public fun <C : Enum<C>> BaseTable<*>.enum(name: String, sqlType: SqlType<C>): Column<C> =
     registerColumn(name, sqlType)
 
+/**
+ * TODO.
+ */
 public class EnumArraySqlType<T : Enum<T>>(private val arrayContentType: EnumSqlType<T>) :
-    // By default, EnumsSqlType uses 'enum' as datatype which is not supported by Postgres that is why have to treat the values as 'text' when no explicit datatype is defined
-    SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.dataTypeName?: "text"}[]") {
+    SqlType<Array<T?>>(Types.ARRAY, "${arrayContentType.dataTypeName ?: "text"}[]") {
+    // By default, EnumsSqlType uses 'enum' as datatype which is not supported by Postgres that is why have to treat the
+    // values as 'text' when no explicit datatype is defined
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array<T?>) {
-        ps.setArray(index, ps.connection.createArrayOf(arrayContentType.typeName, parameter.map { it?.name }.toTypedArray()))
+        ps.setArray(
+            index,
+            ps.connection.createArrayOf(this.typeName, parameter.map { it?.name }.toTypedArray())
+        )
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -232,4 +249,7 @@ public class EnumArraySqlType<T : Enum<T>>(private val arrayContentType: EnumSql
     }
 }
 
+/**
+ * TODO.
+ */
 public fun <T : Enum<T>> EnumSqlType<T>.toEnumArraySqlType(): EnumArraySqlType<T> = EnumArraySqlType(this)

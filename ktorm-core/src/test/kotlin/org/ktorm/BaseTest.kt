@@ -111,16 +111,6 @@ abstract class BaseTest {
         val phoneNumber = varchar("phone_number").bindTo { it.phoneNumber }
     }
 
-    enum class Mood {
-        HAPPY,
-        SAD
-    }
-
-    object TableWithEnum : Table<Nothing>("t_enum") {
-        val id = int("id").primaryKey()
-        val current_mood = enum<Mood>("current_mood")
-    }
-
     val Database.departments get() = this.sequenceOf(Departments)
 
     val Database.employees get() = this.sequenceOf(Employees)

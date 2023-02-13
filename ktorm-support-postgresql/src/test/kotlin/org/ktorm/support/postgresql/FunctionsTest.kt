@@ -24,7 +24,26 @@ class FunctionsTest : BasePostgreSqlTest() {
 
         assertEquals(listOf(Mood.SAD, Mood.HAPPY, Mood.HAPPY), moodsSorted)
     }
-    // TODO same with enums with given data type
+
+    @Test
+    fun testArrayPositionEnumDataTypeCollection() {
+        database.insert(TableWithEnumDataType) {
+            set(it.current_mood, Mood.SAD)
+        }
+        database.insert(TableWithEnumDataType) {
+            set(it.current_mood, Mood.HAPPY)
+        }
+
+        val moodsSorted = database
+            .from(TableWithEnumDataType)
+            .select()
+            .orderBy(arrayPosition(listOf(Mood.SAD, Mood.HAPPY), TableWithEnumDataType.current_mood).asc())
+            .map { row ->
+                row[TableWithEnumDataType.current_mood]
+            }
+
+        assertEquals(listOf(Mood.SAD, Mood.HAPPY, Mood.HAPPY), moodsSorted)
+    }
 
     @Test
     fun testArrayPositionEnumArray() {
@@ -45,7 +64,26 @@ class FunctionsTest : BasePostgreSqlTest() {
 
         assertEquals(listOf(Mood.SAD, Mood.HAPPY, Mood.HAPPY), moodsSorted)
     }
-    // TODO same with enums with given data type
+
+    @Test
+    fun testArrayPositionEnumDataTypeArray() {
+        database.insert(TableWithEnumDataType) {
+            set(it.current_mood, Mood.SAD)
+        }
+        database.insert(TableWithEnumDataType) {
+            set(it.current_mood, Mood.HAPPY)
+        }
+
+        val moodsSorted = database
+            .from(TableWithEnumDataType)
+            .select()
+            .orderBy(arrayPosition(arrayOf(Mood.SAD, Mood.HAPPY), TableWithEnumDataType.current_mood).asc())
+            .map { row ->
+                row[TableWithEnum.current_mood]
+            }
+
+        assertEquals(listOf(Mood.SAD, Mood.HAPPY, Mood.HAPPY), moodsSorted)
+    }
 
     @Test
     fun testArrayPositionText() {
