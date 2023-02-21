@@ -18,6 +18,7 @@ package org.ktorm.schema
 
 import org.ktorm.dsl.QueryRowSet
 import org.ktorm.entity.*
+import org.ktorm.expression.ScalarExpression
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.jvmErasure

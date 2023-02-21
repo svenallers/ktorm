@@ -75,6 +75,29 @@ public interface ColumnDeclaring<T : Any> {
     public fun wrapArgument(argument: T?): ArgumentExpression<T>
 }
 
+public interface SourceColumn<T: Any> : ColumnDeclaring<T> {
+    public val table: SourceTable
+    public val name: String
+
+    /**
+     * The column's primary binding. A column might be bound to a simple property, nested properties,
+     * or a reference to another table, null if the column doesn't bind to any property.
+     */
+    public val binding: ColumnBinding?
+
+    /**
+     * The column's extra bindings. Useful when we need to configure two or more bindings for a column.
+     *
+     * @since 2.6
+     */
+    public val extraBindings: List<ColumnBinding>
+
+    /**
+     * Return all the bindings of this column, including the primary [binding] and [extraBindings].
+     */
+    public val allBindings: List<ColumnBinding> get() = binding?.let { listOf(it) + extraBindings } ?: emptyList()
+}
+
 /**
  * Represents database columns.
  */
@@ -83,32 +106,32 @@ public data class Column<T : Any>(
     /**
      * The table that this column belongs to.
      */
-    val table: BaseTable<*>,
+    override val table: BaseTable<*>,
 
     /**
      * The column's name.
      */
-    val name: String,
+    override val name: String,
 
     /**
      * The column's primary binding. A column might be bound to a simple property, nested properties,
      * or a reference to another table, null if the column doesn't bind to any property.
      */
-    val binding: ColumnBinding? = null,
+    override val binding: ColumnBinding? = null,
 
     /**
      * The column's extra bindings. Useful when we need to configure two or more bindings for a column.
      *
      * @since 2.6
      */
-    val extraBindings: List<ColumnBinding> = emptyList(),
+    override val extraBindings: List<ColumnBinding> = emptyList(),
 
     /**
      * The [SqlType] of this column or expression.
      */
     override val sqlType: SqlType<T>
 
-) : ColumnDeclaring<T> {
+) : SourceColumn<T> {
 
     /**
      * The column's label, used to identify the selected columns and to obtain query results.
@@ -120,10 +143,6 @@ public data class Column<T : Any>(
      */
     val label: String get() = toString(separator = "_")
 
-    /**
-     * Return all the bindings of this column, including the primary [binding] and [extraBindings].
-     */
-    val allBindings: List<ColumnBinding> get() = binding?.let { listOf(it) + extraBindings } ?: emptyList()
 
     /**
      * If the column is bound to a reference table, return the table, otherwise return null.

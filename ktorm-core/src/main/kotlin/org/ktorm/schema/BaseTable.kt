@@ -66,7 +66,7 @@ public abstract class BaseTable<E : Any>(
     catalog: String? = null,
     schema: String? = null,
     entityClass: KClass<E>? = null
-) : TypeReference<E>() {
+) : TypeReference<E>(), SourceTable {
 
     private val _refCounter = RefCounter.getCounter()
     private val _columns = LinkedHashMap<String, Column<*>>()
@@ -110,7 +110,7 @@ public abstract class BaseTable<E : Any>(
     /**
      * Return all columns of the table.
      */
-    public val columns: List<Column<*>> get() = _columns.values.toList()
+    public override val columns: List<Column<*>> get() = _columns.values.toList()
 
     /**
      * The primary key columns of this table.
@@ -371,7 +371,7 @@ public abstract class BaseTable<E : Any>(
     /**
      * Convert this table to a [TableExpression].
      */
-    public fun asExpression(): TableExpression {
+    public override fun asExpression(): TableExpression {
         return TableExpression(tableName, alias, catalog, schema)
     }
 
