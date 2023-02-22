@@ -66,7 +66,7 @@ public abstract class BaseTable<E : Any>(
     catalog: String? = null,
     schema: String? = null,
     entityClass: KClass<E>? = null
-) : TypeReference<E>(), SourceTable {
+) : TypeReference<E>(), TableDeclaring {
 
     private val _refCounter = RefCounter.getCounter()
     private val _columns = LinkedHashMap<String, Column<*>>()

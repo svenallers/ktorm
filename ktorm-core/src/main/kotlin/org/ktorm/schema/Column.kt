@@ -75,28 +75,29 @@ public interface ColumnDeclaring<T : Any> {
     public fun wrapArgument(argument: T?): ArgumentExpression<T>
 }
 
-public interface SourceColumn<T: Any> : ColumnDeclaring<T> {
-    public val table: SourceTable
-    public val name: String
-
-    /**
-     * The column's primary binding. A column might be bound to a simple property, nested properties,
-     * or a reference to another table, null if the column doesn't bind to any property.
-     */
-    public val binding: ColumnBinding?
-
-    /**
-     * The column's extra bindings. Useful when we need to configure two or more bindings for a column.
-     *
-     * @since 2.6
-     */
-    public val extraBindings: List<ColumnBinding>
-
-    /**
-     * Return all the bindings of this column, including the primary [binding] and [extraBindings].
-     */
-    public val allBindings: List<ColumnBinding> get() = binding?.let { listOf(it) + extraBindings } ?: emptyList()
-}
+// TODO replace all source column by columnDeclaring?
+//public interface SourceColumn<T: Any> : ColumnDeclaring<T> {
+//    public val table: TableDeclaring
+//    public val name: String
+//
+//    /**
+//     * The column's primary binding. A column might be bound to a simple property, nested properties,
+//     * or a reference to another table, null if the column doesn't bind to any property.
+//     */
+//    public val binding: ColumnBinding?
+//
+//    /**
+//     * The column's extra bindings. Useful when we need to configure two or more bindings for a column.
+//     *
+//     * @since 2.6
+//     */
+//    public val extraBindings: List<ColumnBinding>
+//
+//    /**
+//     * Return all the bindings of this column, including the primary [binding] and [extraBindings].
+//     */
+//    public val allBindings: List<ColumnBinding> get() = binding?.let { listOf(it) + extraBindings } ?: emptyList()
+//}
 
 /**
  * Represents database columns.
@@ -131,7 +132,7 @@ public data class Column<T : Any>(
      */
     override val sqlType: SqlType<T>
 
-) : SourceColumn<T> {
+) : ColumnDeclaring<T> {
 
     /**
      * The column's label, used to identify the selected columns and to obtain query results.

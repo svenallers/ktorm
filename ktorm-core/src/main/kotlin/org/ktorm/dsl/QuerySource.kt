@@ -34,7 +34,7 @@ import org.ktorm.schema.*
  */
 public data class QuerySource(
     val database: Database,
-    val sourceTable: SourceTable,
+    val sourceTable: TableDeclaring,
     val expression: QuerySourceExpression
 )
 
@@ -43,14 +43,14 @@ public data class QuerySource(
  *
  * @since 2.7
  */
-public fun Database.from(table: SourceTable): QuerySource {
+public fun Database.from(table: TableDeclaring): QuerySource {
     return QuerySource(this, table, table.asExpression())
 }
 
 /**
  * Perform a cross join and return a new [QuerySource], translated to `cross join` in SQL.
  */
-public fun QuerySource.crossJoin(right: SourceTable, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.crossJoin(right: TableDeclaring, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.CROSS_JOIN,
@@ -64,7 +64,7 @@ public fun QuerySource.crossJoin(right: SourceTable, on: ColumnDeclaring<Boolean
 /**
  * Perform an inner join and return a new [QuerySource], translated to `inner join` in SQL.
  */
-public fun QuerySource.innerJoin(right: SourceTable, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.innerJoin(right: TableDeclaring, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.INNER_JOIN,
@@ -78,7 +78,7 @@ public fun QuerySource.innerJoin(right: SourceTable, on: ColumnDeclaring<Boolean
 /**
  * Perform a left join and return a new [QuerySource], translated to `left join` in SQL.
  */
-public fun QuerySource.leftJoin(right: SourceTable, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.leftJoin(right: TableDeclaring, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.LEFT_JOIN,
@@ -92,7 +92,7 @@ public fun QuerySource.leftJoin(right: SourceTable, on: ColumnDeclaring<Boolean>
 /**
  * Perform a right join and return a new [QuerySource], translated to `right join` in SQL.
  */
-public fun QuerySource.rightJoin(right: SourceTable, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.rightJoin(right: TableDeclaring, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.RIGHT_JOIN,
@@ -106,7 +106,7 @@ public fun QuerySource.rightJoin(right: SourceTable, on: ColumnDeclaring<Boolean
 /**
  * Perform a full join and return a new [QuerySource], translated to `full join` in SQL.
  */
-public fun QuerySource.fullJoin(right: SourceTable, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.fullJoin(right: TableDeclaring, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.FULL_JOIN,
